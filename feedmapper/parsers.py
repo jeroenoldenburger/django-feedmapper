@@ -73,6 +73,9 @@ class XMLParser(Parser):
                 resolved = ''.join([text.strip() for text in node.xpath("text()")])
             else:
                 nval = node.find(path, namespaces=self.nsmap)
+                if nval is None:
+                     nval = node.xpath(path, namespaces=self.nsmap)
+                     if nval: nval=nval[0]
                 resolved = nval.text if nval is not None else ""
         return resolved.strip()
 
@@ -124,24 +127,23 @@ class XMLParser(Parser):
                         except model.DoesNotExist:
                             instance = model()
                     for field, target in fields.items():
-                        if field != identifier:
-                            if isinstance(target, basestring):
-                                # maps one model field to one feed node
-                                value = self.get_value(node, target)
-                            elif isinstance(target, list):
-                                # maps one model field to multiple feed nodes
-                                value = self.join_fields(node, target)
-                            elif isinstance(target, dict):
-                                value = None
-                                if 'transformer' in target:
-                                    # maps one model field to a transformer method
-                                    transformer = getattr(instance, target['transformer'])
-                                    text_list = [self.get_value(node, target_field) for target_field in target['fields']]
-                                    value = transformer(*text_list)
-                                if 'default' in target and not value:
-                                    # maps one model field to a default value
-                                    value = target['default']
-                            setattr(instance, field, value)
+                        if isinstance(target, basestring):
+                            # maps one model field to one feed node
+                            value = self.get_value(node, target)
+                        elif isinstance(target, list):
+                            # maps one model field to multiple feed nodes
+                            value = self.join_fields(node, target)
+                        elif isinstance(target, dict):
+                            value = None
+                            if 'transformer' in target:
+                                # maps one model field to a transformer method
+                                transformer = getattr(instance, target['transformer'])
+                                text_list = [self.get_value(node, target_field) for target_field in target['fields']]
+                                value = transformer(*text_list)
+                            if 'default' in target and not value:
+                                # maps one model field to a default value
+                                value = target['default']
+                        setattr(instance, field, value)
                     instance.save()
             self.mapping.parse_succeeded = True
             self.mapping.parse_log = ""
