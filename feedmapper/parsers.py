@@ -128,8 +128,12 @@ class XMLParser(Parser):
                             instance = model()
                     for field, target in fields.items():
                         if isinstance(target, basestring):
-                            # maps one model field to one feed node
-                            value = self.get_value(node, target)
+                            if target == "feed_label":
+                                # provides the feed label
+                                value = self.mapping.label
+                            else:
+                                # maps one model field to one feed node
+                                value = self.get_value(node, target)
                         elif isinstance(target, list):
                             # maps one model field to multiple feed nodes
                             value = self.join_fields(node, target)
