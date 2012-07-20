@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from django.utils.timezone import now
 from lxml import etree
 
 from django.conf import settings
@@ -85,7 +86,7 @@ class XMLParser(Parser):
         Traverses through the XML document and parses the data, applying it to the
         model specified in the :py:class:`~feedmapper.models.Mapping`.
         """
-        self.mapping.parse_attempted = datetime.now()
+        self.mapping.parse_attempted = now()
         try:
             tree = etree.parse(self.data_source)
             root = tree.getroot()
