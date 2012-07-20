@@ -79,7 +79,7 @@ class JSONField(models.TextField):
         if not value:
             return super(JSONField, self).get_db_prep_save("")
         else:
-            return super(JSONField, self).get_db_prep_save(dumps(value))
+            return super(JSONField, self).get_db_prep_save(dumps(value), connection)
 
     def south_field_triple(self):
         "Returns a suitable description of this field for South."
