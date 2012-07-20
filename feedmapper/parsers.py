@@ -100,6 +100,7 @@ class XMLParser(Parser):
                 if not self.validate_model_format(model_string):
                     raise ValueError("Invalid model format in JSON mapping: %s" % model_string)
                 identifier = configuration.get('identifier')
+                identifier_fieldname = configuration.get('identifier_fieldname')
                 if not identifier and not self.mapping.purge:
                     raise UserWarning("Purging is off and the JSON mapping doesn't supply an identifier.")
                 model = get_model(*model_string.split('.'))
@@ -123,7 +124,8 @@ class XMLParser(Parser):
                         # purge is turned off, retrieve an existing instance
                         identifier_value = node.find(identifier, namespaces=self.nsmap).text
                         try:
-                            instance = model.objects.get(pk=identifier_value)
+                            kw = {identifier_fieldname:identifier_value}
+                            instance = model.objects.get(**kw)
                         except model.DoesNotExist:
                             instance = model()
                     for field, target in fields.items():
