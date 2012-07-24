@@ -149,7 +149,8 @@ class XMLParser(Parser):
                             if 'default' in target and not value:
                                 # maps one model field to a default value
                                 value = target['default']
-                        setattr(instance, field, value.strip())
+                        if isinstance(value, basestring): value = value.strip()
+                        setattr(instance, field, value)
                     instance.save()
             self.mapping.parse_succeeded = True
             self.mapping.parse_log = ""
