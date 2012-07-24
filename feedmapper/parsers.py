@@ -122,7 +122,7 @@ class XMLParser(Parser):
                         instance = model()
                     else:
                         # purge is turned off, retrieve an existing instance
-                        identifier_value = node.find(identifier, namespaces=self.nsmap).text
+                        identifier_value = node.find(identifier, namespaces=self.nsmap).text.strip()
                         try:
                             kw = {identifier_fieldname:identifier_value}
                             instance = model.objects.get(**kw)
@@ -149,7 +149,7 @@ class XMLParser(Parser):
                             if 'default' in target and not value:
                                 # maps one model field to a default value
                                 value = target['default']
-                        setattr(instance, field, value)
+                        setattr(instance, field, value.strip())
                     instance.save()
             self.mapping.parse_succeeded = True
             self.mapping.parse_log = ""
