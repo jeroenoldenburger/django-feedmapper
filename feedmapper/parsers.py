@@ -97,6 +97,7 @@ class XMLParser(Parser):
             model_mappings = self.mapping.data_map['models']
             purge_filter = self.mapping.data_map.get('purge_filter')
             for model_string, configuration in model_mappings.items():
+                baseurl = configuration.get('baseurl',None)
                 if not self.validate_model_format(model_string):
                     raise ValueError("Invalid model format in JSON mapping: %s" % model_string)
                 identifier = configuration.get('identifier')
@@ -129,6 +130,9 @@ class XMLParser(Parser):
                         except model.DoesNotExist:
                             instance = model()
                     for field, target in fields.items():
+                        extra_args = {}
+                        if "extra" in target: extra_args.update(**target['extra'])
+                        if baseurl: extra_args['baseurl'] = baseurl
                         if isinstance(target, basestring):
                             if target == "feed_label":
                                 # provides the feed label
@@ -145,7 +149,7 @@ class XMLParser(Parser):
                                 # maps one model field to a transformer method
                                 transformer = getattr(instance, target['transformer'])
                                 text_list = [self.get_value(node, target_field) for target_field in target['fields']]
-                                value = transformer(*text_list)
+                                value = transformer(*text_list,**extra_args)
                             if 'default' in target and not value:
                                 # maps one model field to a default value
                                 value = target['default']
