@@ -62,11 +62,22 @@ class XMLParser(Parser):
 
     def get_value(self, node, path):
         "Attempts to retrieve either the node text or node attribute specified."
-        if '@' in path:
+        if '.@' in path:
             if path.count('@') > 1:
                 raise ValueError("You have more than one attribute accessor. (e.g. foo.@bar.@baz)")
             path, attr = path.rsplit('.@')
-            resolved = node.find(path, namespaces=self.nsmap).attrib.get(attr, "")
+            path_only, attr = path.rsplit('.@')
+            nd = node.find(path_only, namespaces=self.nsmap)
+            if nd is None:
+                nval = node.xpath(path, namespaces=self.nsmap)
+                if nval: nval=nval[0]
+                resolved = nval.text if nval is not None else ""
+            else:
+                resolved = nd.attrib.get(attr, "")
+        elif '@' in path:
+            nval = node.xpath(path, namespaces=self.nsmap)
+            if nval: nval=nval[0]
+            resolved = nval.text if nval is not None else ""
         else:
             if path == ".":
                 # this will get text in an XML node, regardless of placement
@@ -162,6 +173,9 @@ class XMLParser(Parser):
             self.mapping.parse_succeeded = False
             self.mapping.parse_log = str(e.error_log)
         except IOError as e:
+            self.mapping.parse_succeeded = False
+            self.mapping.parse_log = e.args[0]
+        except ValueError as e:
             self.mapping.parse_succeeded = False
             self.mapping.parse_log = e.args[0]
         # clear the lxml error log so errors don't compound
